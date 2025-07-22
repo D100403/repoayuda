@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Producto</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Agregar Producto</h1>
+    <button class="back-button" onclick="history.back()">← Atrás</button>
+  </header>
+  <main>
+    <form id="form-producto">
+      <input type="text" placeholder="Nombre" required><br>
+      <input type="number" placeholder="Cantidad por bulto" required><br>
+      <input type="text" placeholder="URL de imagen (opcional)"><br>
+      <select required>
+        <option value="">Categoría</option>
+        <option value="Samseng">Samseng</option>
+        <option value="Lenterdit">Lenterdit</option>
+        <option value="Grandiet">Grandiet</option>
+        <option value="Levex">Levex</option>
+      </select><br>
+      <select required>
+        <option value="">Subcategoría</option>
+        <option value="papel higiénico">Papel Higiénico</option>
+        <option value="servilleta">Servilleta</option>
+        <option value="pañuelitos">Pañuelitos</option>
+        <option value="pañales">Pañales</option>
+        <option value="otro">Otro</option>
+      </select><br>
+      <button type="submit">Guardar</button>
+    </form>
+  </main>
+  <script src="storage.js"></script>
+  <script>
+    const form = document.getElementById('form-producto');
+    form.onsubmit = e => {
+      e.preventDefault();
+      const [nombre, bulto, img, categoria, sub] = form.elements;
+      const producto = {
+        nombre: nombre.value,
+        bulto: parseInt(bulto.value),
+        img: img.value,
+        categoria: categoria.value,
+        sub: sub.value
+      };
+      guardarProducto(producto);
+      alert('Producto guardado');
+      form.reset();
+    };
+  </script>
+</body>
+</html>
