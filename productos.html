@@ -1,9 +1,9 @@
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Productos</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
@@ -11,7 +11,9 @@
     <button class="back-button" onclick="history.back()">← Atrás</button>
   </header>
   <main>
-    <div id="productos-container"></div>
+    <section id="productos-container" class="grid-productos">
+      <!-- Los productos se cargarán con JS -->
+    </section>
   </main>
   <script src="storage.js"></script>
 <script>
@@ -19,61 +21,53 @@
   const categorias = cargarCategorias();
 
   categorias.forEach(cat => {
-    const productos = cargarProductosPorCategoria(cat);
-    if (productos.length) {
-      const grupo = document.createElement('section');
-      grupo.innerHTML = `<h2>${cat}</h2>`;
+  const productos = cargarProductosPorCategoria(cat);
+  productos.forEach(prod => {
+    const cantidadGuardada = prod.cantidad || '';
+    const div = document.createElement('div');
+    div.className = 'producto-item';
+    div.innerHTML = `
+  <div class="producto-contenido">
+    ${prod.img ? `<img src="${prod.img}" alt="${prod.nombre}" class="producto-imagen">` : ''}
+    <div class="producto-detalles">
+      <strong>${prod.nombre}</strong><br>
+      <small>${prod.bulto} por bulto</small><br>
+      <input type="number" min="0" placeholder="Cantidad necesaria" value="${cantidadGuardada}" 
+             oninput="actualizarCalculo(this, ${prod.bulto}, '${prod.nombre}')">
+      <div class="resultado"></div>
+      <button onclick="eliminarProducto('${prod.nombre}')">🗑️ Eliminar</button>
+    </div>
+  </div>
+`;
+    contenedor.appendChild(div);
 
-      productos.forEach(prod => {
-        const cantidadGuardada = prod.cantidad || '';
-        const div = document.createElement('div');
-        div.className = 'producto-item';
-        div.innerHTML = `
-          <img src="${prod.img || ''}" alt="${prod.nombre}" width="60">
-          <strong>${prod.nombre}</strong><br>
-          <small>${prod.bulto} por bulto</small><br>
-          <input type="number" min="0" placeholder="Cantidad necesaria" value="${cantidadGuardada}" 
-                 oninput="actualizarCalculo(this, ${prod.bulto}, '${prod.nombre}')">
-          <div class="resultado"></div>
-          <button onclick="eliminarProducto('${prod.nombre}')">🗑️ Eliminar</button>
-        `;
-        grupo.appendChild(div);
-
-        // Mostrar cálculo si ya había valor
-        if (cantidadGuardada) {
-          const input = div.querySelector('input');
-          actualizarCalculo(input, prod.bulto, prod.nombre);
-        }
-      });
-
-      contenedor.appendChild(grupo);
+    if (cantidadGuardada) {
+      const input = div.querySelector('input');
+      actualizarCalculo(input, prod.bulto, prod.nombre);
     }
   });
+});
 
   function actualizarCalculo(input, bulto, nombre) {
-    const cantidad = parseInt(input.value);
-    const resultado = input.parentElement.querySelector('.resultado');
-    const productos = cargarProductos();
-    const index = productos.findIndex(p => p.nombre === nombre);
+  const cantidad = parseInt(input.value);
+  const resultado = input.parentElement.querySelector('.resultado');
+  const productos = cargarProductos();
+  const index = productos.findIndex(p => p.nombre === nombre);
 
+  if (index >= 0) {
     if (!isNaN(cantidad)) {
-      const bultos = Math.floor(cantidad / bulto);
-      const resto = cantidad % bulto;
-      resultado.innerText = `Necesitás ${bultos} bultos y sobran ${resto}`;
-      if (index >= 0) {
-        productos[index].cantidad = cantidad;
-        localStorage.setItem('productos', JSON.stringify(productos));
-      }
+      const bultos = Math.ceil(cantidad / bulto);
+      const sobra = bultos * bulto - cantidad;
+      resultado.innerText = `Necesitás ${bultos} bulto${bultos > 1 ? 's' : ''} y sobran ${sobra}`;
+      productos[index].cantidad = cantidad;
     } else {
       resultado.innerText = '';
+      delete productos[index].cantidad; // ❗ eliminar la propiedad si está vacío
     }
-  }
 
-  function eliminarProducto(nombre) {
-    let productos = cargarProductos().filter(p => p.nombre !== nombre);
     localStorage.setItem('productos', JSON.stringify(productos));
-    location.reload();
   }
+}
 </script>
 </body>
 </html>

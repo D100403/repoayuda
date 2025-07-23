@@ -14,10 +14,11 @@
   <main>
     <div id="resumen-container"></div>
   </main>
-  <script src="storage.js"></script>
+  <button class="completado-btn" onclick="marcarCompletado()">✔ Completado</button>
+<script src="storage.js"></script>
 <script>
   const resumen = document.getElementById('resumen-container');
-  const productos = cargarProductos();
+  const productos = cargarProductos().filter(p => p.cantidad); // solo con cantidad
   const porSub = {};
 
   productos.forEach(p => {
@@ -30,17 +31,90 @@
     div.innerHTML = `<h2>${sub}</h2>`;
     porSub[sub].forEach(p => {
       const item = document.createElement('div');
-      let texto = `${p.nombre} (${p.bulto} por bulto)`;
-      if (p.cantidad) {
-        const bultos = Math.floor(p.cantidad / p.bulto);
-        const resto = p.cantidad % p.bulto;
-        texto += ` - Necesitás ${bultos} bultos y sobran ${resto}`;
-      }
-      item.innerText = texto;
+      item.className = 'producto-item';
+
+      const bultos = Math.ceil(p.cantidad / p.bulto);
+      const sobra = bultos * p.bulto - p.cantidad;
+      const recogido = p.recogido ? 'recogido' : '';
+      
+      item.innerHTML = `
+        <label>
+          <input type="checkbox" ${p.recogido ? 'checked' : ''} onchange="marcarRecogido('${p.nombre}', this.checked)">
+          <span class="${recogido}">${p.nombre} (${p.bulto} por bulto) - Necesitás ${bultos} bulto${bultos > 1 ? 's' : ''} y sobran ${sobra}</span>
+        </label>
+      `;
+
       div.appendChild(item);
     });
     resumen.appendChild(div);
   }
+
+  function marcarRecogido(nombre, estado) {
+    const productos = cargarProductos();
+    const i = productos.findIndex(p => p.nombre === nombre);
+    if (i !== -1) {
+      productos[i].recogido = estado;
+      localStorage.setItem('productos', JSON.stringify(productos));
+      location.reload(); // volver a renderizar para aplicar tachado
+    }
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    const resumenContainer = document.getElementById('resumenContainer');
+    const productos = JSON.parse(localStorage.getItem('productos')) || [];
+
+    productos.forEach((producto, index) => {
+      if (producto.cantidad && !isNaN(producto.cantidad)) {
+        const item = document.createElement('div');
+        item.className = 'producto-item';
+
+        if (producto.recogido) item.classList.add('recogido');
+
+        if (producto.imagen) {
+          const img = document.createElement('img');
+          img.src = producto.imagen;
+          item.appendChild(img);
+        }
+
+        const nombre = document.createElement('h3');
+        nombre.textContent = producto.nombre;
+        item.appendChild(nombre);
+
+        const resultado = document.createElement('p');
+        const bultos = Math.ceil(producto.cantidad / producto.bulto);
+        const sobra = bultos * producto.bulto - producto.cantidad;
+        resultado.textContent = `Necesitás ${bultos} bulto${bultos > 1 ? 's' : ''} y sobran ${sobra}`;
+        item.appendChild(resultado);
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = producto.recogido || false;
+        checkbox.onchange = () => {
+          producto.recogido = checkbox.checked;
+          localStorage.setItem('productos', JSON.stringify(productos));
+          item.classList.toggle('recogido', checkbox.checked);
+        };
+        item.appendChild(checkbox);
+
+        resumenContainer.appendChild(item);
+      }
+    });
+  });
+
+function marcarCompletado() {
+  const confirmacion = confirm("¿Estás seguro de que querés marcar todos los productos como completados? Esto eliminará las cantidades cargadas.");
+
+  if (!confirmacion) return;
+
+  const productos = JSON.parse(localStorage.getItem('productos')) || [];
+
+  productos.forEach(p => {
+    delete p.cantidad;
+    delete p.recogido;
+  });
+
+  localStorage.setItem('productos', JSON.stringify(productos));
+  location.reload();
+}
 </script>
 </body>
 </html>
