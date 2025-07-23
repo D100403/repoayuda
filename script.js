@@ -15,6 +15,7 @@ function cargarProductosPorCategoria(categoria) {
 function cargarCategorias() {
   return ['Samseng', 'Lenterdit', 'Grandiet', 'Levex'];
 }
+
 function mostrarProductos() {
   const productos = cargarProductos();
   const contenedor = document.getElementById('productos-container');
@@ -37,10 +38,13 @@ function mostrarProductos() {
         <input type="number" min="0" placeholder="Cantidad necesaria" value="${producto.cantidad || ''}"
                onchange="actualizarCantidad(${index}, this.value, this.nextElementSibling)">
         <div class="resultado-bultos" style="display: ${producto.cantidad ? 'block' : 'none'};"></div>
+        <button onclick="eliminarProducto(${index})" class="eliminar-btn">🗑️ Eliminar</button>
       </div>
     `;
 
     contenedor.appendChild(item);
+
+    // Si ya había cantidad, recalculamos para mostrar el resultado
     if (producto.cantidad) {
       actualizarCantidad(index, producto.cantidad, item.querySelector('.resultado-bultos'));
     }
@@ -64,6 +68,13 @@ function actualizarCantidad(index, valor, resultadoDiv) {
   }
 
   localStorage.setItem('productos', JSON.stringify(productos));
+}
+
+function eliminarProducto(index) {
+  const productos = cargarProductos();
+  productos.splice(index, 1);
+  localStorage.setItem('productos', JSON.stringify(productos));
+  mostrarProductos(); // Recarga la lista sin el producto eliminado
 }
 
 document.addEventListener('DOMContentLoaded', mostrarProductos);

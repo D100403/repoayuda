@@ -261,3 +261,18 @@ form button:hover {
   color: #555;
   font-size: 0.9rem;
 }
+
+.eliminar-btn {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  margin-top: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.eliminar-btn:hover {
+  background-color: #cc0000;
+}
